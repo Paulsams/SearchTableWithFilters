@@ -1,0 +1,10 @@
+{
+  "name": "com.paulsams.search-table-with-filters",
+  "version": "1.0.0",
+  "displayName": "SearchTableWithFilters",
+  "dependencies": {
+    "com.paulsams.misc-utilities": "1.0.0"
+  },
+  "description": "This package allows you to create a table with a SearchField in your editor scripts and filter elements.",
+  "unity": "2019.2"
+}
