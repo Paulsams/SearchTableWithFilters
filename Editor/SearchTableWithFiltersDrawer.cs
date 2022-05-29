@@ -5,16 +5,22 @@ using System.Linq;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
+public enum FilterType
+{
+    OR,
+    AND,
+}
+
+public interface ISortingElementForSearch
+{
+    public string Name { get; }
+}
+
 public class SearchTableWithFiltersDrawer
 {
-    public interface ISortingElementForSearch
-    {
-        public string Name { get; }
-    }
-
     public class FilterParameters
     {
-        public delegate bool FilterCallback(int index, int indexFilter);
+        public delegate bool FilterCallback(int index, int indexFilter, FilterType filterType);
 
         public readonly ReadOnlyCollection<string> Filters;
         public readonly FilterCallback Callback;
@@ -43,6 +49,8 @@ public class SearchTableWithFiltersDrawer
     private readonly FilterParameters _filterParameters;
     private readonly ReadOnlyCollection<ISortingElementForSearch> _elementsOrderDefault;
 
+    private FilterType _filterType;
+
     private Box _containerForItemDatas;
     private VisualElement _filterElementsContainer;
     private ToolbarPopupSearchField _toolbarSearchField;
@@ -70,6 +78,8 @@ public class SearchTableWithFiltersDrawer
         VisualElement container = new VisualElement();
         _filterElementsContainer = CreateFilterElementsContainer(container);
 
+        CreateDropdownFromFilterType();
+
         _containerForItemDatas = new Box();
         CreateSearchField();
 
@@ -79,6 +89,13 @@ public class SearchTableWithFiltersDrawer
         CreateFiltersChoice();
 
         return container;
+    }
+
+    private void CreateDropdownFromFilterType()
+    {
+        var namesFilterTypes = Enum.GetNames(typeof(FilterType));
+        DropdownField choiceFilterType = new DropdownField("Filter Type", namesFilterTypes.ToList(), (int)FilterType.OR);
+        choiceFilterType.RegisterValueChangedCallback((_) => _filterType = (FilterType)choiceFilterType.index);
     }
 
     private void CreateSearchField()
@@ -159,14 +176,13 @@ public class SearchTableWithFiltersDrawer
             bool isFind = false;
             for (int j = 0; j < indexesFilters.Count; ++j)
             {
-                if (_filterParameters.Callback.Invoke(i, indexesFilters[j]))
+                if (_filterParameters.Callback.Invoke(i, indexesFilters[j], _filterType))
                 {
                     _currentAvailiableElementForSearch.Add(new SortingElement(i, _sortingElements[i]));
                     isFind = true;
                     break;
                 }
             }
-            UnityEngine.Debug.Log(isFind);
             _containerForItemDatas[i].style.display = isFind ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
